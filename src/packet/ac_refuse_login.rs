@@ -1,5 +1,4 @@
 #![allow(non_camel_case_types)]
-use tokio::io::AsyncWriteExt;
 
 use super::PacketHeader;
 
@@ -71,9 +70,9 @@ impl From<PACKET_AC_REFUSE_LOGIN> for Vec<u8> {
     fn from(packet: PACKET_AC_REFUSE_LOGIN) -> Self {
         let mut buf = Vec::with_capacity(std::mem::size_of_val(&packet));
 
-        buf.write_i16_le(packet.packet_type);
-        buf.write_u8(packet.error_code);
-        buf.extend(packet.block_date);
+        buf.extend(&packet.packet_type.to_le_bytes());
+        buf.push(packet.error_code);
+        buf.extend(&packet.block_date);
 
         buf
     }
