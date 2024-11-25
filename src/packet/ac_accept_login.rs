@@ -47,11 +47,11 @@ pub struct SERVER_ADDR {
 }
 
 impl PacketHeader for PACKET_AC_ACCEPT_LOGIN {
-    const HEADER: u16 = 0x69;
+    const HEADER: i16 = 0x69;
 }
 
+// TODO: should this be write(socket, packet)?
 impl From<PACKET_AC_ACCEPT_LOGIN> for Vec<u8> {
-    // TODO: use different type, not Vec<u8>
     fn from(value: PACKET_AC_ACCEPT_LOGIN) -> Self {
         todo!()
     }

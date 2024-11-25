@@ -1,4 +1,5 @@
 use command::CommandHandler;
+use either::Either::{Left, Right};
 use packet::PacketHeader;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
@@ -7,7 +8,14 @@ mod command;
 mod packet;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
+    if let Err(e) = tokio::spawn(run()).await {
+        eprintln!("main error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let listener = TcpListener::bind("127.0.0.1:8080").await?;
 
     loop {
@@ -32,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 // Match packet type.
-                let header = u16::from_le_bytes(header_buf);
+                let header = i16::from_le_bytes(header_buf);
                 match header {
                     packet::PACKET_CA_LOGIN::HEADER => {
                         // Read exactly the expected packet size.
@@ -51,7 +59,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .expect("failed to handle login");
 
                         // Write response into the socket in case it exists.
-                        let src: Vec<u8> = response.into();
+                        let src: Vec<u8> = match response {
+                            Left(success) => success.into(),
+                            Right(failure) => failure.into(),
+                        };
 
                         socket
                             .write_all(&src)

@@ -1,5 +1,6 @@
-use crate::packet;
-use crate::packet::PACKET_AC_ACCEPT_LOGIN;
+use either::Either;
+
+use crate::packet::{self, RefuseLoginErrorCode, PACKET_AC_ACCEPT_LOGIN, PACKET_AC_REFUSE_LOGIN};
 
 use super::{CommandHandler, RegistrationHandler};
 
@@ -10,7 +11,7 @@ pub struct LoginHandler<'a> {
 
 impl CommandHandler for LoginHandler<'_> {
     type Input = packet::PACKET_CA_LOGIN;
-    type Output = packet::PACKET_AC_ACCEPT_LOGIN; // TODO: this can be another packet, just return the trait?
+    type Output = Either<PACKET_AC_ACCEPT_LOGIN, PACKET_AC_REFUSE_LOGIN>;
     type Error = Box<dyn std::error::Error>;
 
     fn handle(&self, input: &Self::Input) -> Result<Self::Output, Self::Error> {
@@ -20,11 +21,18 @@ impl CommandHandler for LoginHandler<'_> {
         }
 
         // Check if user exists in DB, fetch it.
+        if false {
+            return Ok(either::Right(PACKET_AC_REFUSE_LOGIN::new(
+                RefuseLoginErrorCode::BlockedByGM,
+                "xxx",
+            )));
+        }
+
         // Check if password matches.
         // Append to login_activity table.
         // Respond to client.
 
-        Ok(PACKET_AC_ACCEPT_LOGIN {
+        Ok(either::Left(PACKET_AC_ACCEPT_LOGIN {
             packet_type: todo!(),
             packet_length: todo!(),
             auth_code: todo!(),
@@ -34,6 +42,6 @@ impl CommandHandler for LoginHandler<'_> {
             last_login_time: todo!(),
             sex: todo!(),
             server_list: todo!(),
-        })
+        }))
     }
 }

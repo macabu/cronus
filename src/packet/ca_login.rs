@@ -20,7 +20,7 @@ pub struct PACKET_CA_LOGIN {
 }
 
 impl PacketHeader for PACKET_CA_LOGIN {
-    const HEADER: u16 = 0x64;
+    const HEADER: i16 = 0x64;
 }
 
 impl TryFrom<&[u8]> for PACKET_CA_LOGIN {
