@@ -1,11 +1,10 @@
-use command::CommandHandler;
 use either::Either::{Left, Right};
 use packet::PacketHeader;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
-mod command;
 mod packet;
+mod service;
 
 #[tokio::main]
 async fn main() {
@@ -23,11 +22,9 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         tokio::spawn(async move {
             // TODO: do not create this for every connection?
-            let registration_handler = command::RegistrationHandler {};
-            let login_handler = command::LoginHandler {
-                registration_handler: &registration_handler,
-            };
+            let login_service = service::LoginService {};
 
+            // TODO: too much happening inside this accept loop.
             loop {
                 // Peek header.
                 let mut header_buf = [0; 2];
@@ -54,8 +51,8 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                         println!("[{}] Received packet {:?}", addr.ip(), packet);
 
                         // Invoke command handler that may return a response.
-                        let response = login_handler
-                            .handle(&packet)
+                        let response = login_service
+                            .login(&packet)
                             .expect("failed to handle login");
 
                         // Write response into the socket in case it exists.
